@@ -1382,6 +1382,19 @@ WHERE ((SUBSTRING([e].[NullableStringA], 0 + 1, [e].[IntA]) <> [e].[NullableStri
                 @"");
         }
 
+        public override void Null_semantics_subquery()
+        {
+            base.Null_semantics_subquery();
+
+            AssertSql(
+                @"SELECT [e].[Id]
+FROM [Entities1] AS [e]
+WHERE (
+    SELECT TOP(1) [e0].[StringA]
+    FROM [Entities1] AS [e0]
+    WHERE ([e0].[Id] = [e].[Id]) AND ([e0].[Id] <> 7)) IS NOT NULL");
+        }
+
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

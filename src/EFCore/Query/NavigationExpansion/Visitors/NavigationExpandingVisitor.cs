@@ -162,8 +162,14 @@ namespace Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Visitors
                     var rewrittenNavigationExpansionExpression = new NavigationExpansionExpression(navigationExpansionExpression.Operand, rewrittenState, combinedKeySelectorBody.Type);
                     var inner = new NavigationExpansionReducingVisitor().Visit(rewrittenNavigationExpansionExpression);
 
+                    var nullableOuterKeyAccess = !outerKeyAccess.Type.IsNullableType()
+                        ? Expression.Convert(outerKeyAccess, outerKeyAccess.Type.MakeNullable())
+                        : outerKeyAccess;
+
                     var predicate = Expression.Lambda(
-                        Expression.Equal(outerKeyAccess, inner),
+                        Expression.AndAlso(
+                            Expression.NotEqual(nullableOuterKeyAccess, Expression.Constant(null)),
+                        Expression.Equal(outerKeyAccess, inner)),
                         outerParameter);
 
                     var whereMethodInfo = LinqMethodHelpers.QueryableWhereMethodInfo.MakeGenericMethod(collectionNavigationElementType);

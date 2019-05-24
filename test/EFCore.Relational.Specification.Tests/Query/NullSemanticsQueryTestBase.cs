@@ -975,6 +975,15 @@ namespace Microsoft.EntityFrameworkCore.Query
             }
         }
 
+        [Fact]
+        public virtual void Null_semantics_subquery()
+        {
+            AssertQuery<NullSemanticsEntity1>(
+                es => es.Where(e1 => es.Where(e2 => e2.Id == e1.Id && e2.Id != 7).FirstOrDefault().StringA != null),
+                es => es.Where(e1 => Maybe(es.Where(e2 => e2.Id == e1.Id && e2.Id != 7).FirstOrDefault(), () => es.Where(e2 => e2.Id == e1.Id && e2.Id != 7).FirstOrDefault().StringA) != null),
+                useRelationalNulls: false);
+        }
+
         protected static TResult Maybe<TResult>(object caller, Func<TResult> expression)
             where TResult : class
         {
